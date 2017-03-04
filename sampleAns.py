@@ -4,7 +4,6 @@ import re
 from keras.models import *
 from keras.layers import *
 from keras.optimizers import *
-from pandas.stats.api import ols
 import matplotlib.pyplot as plt
 
 TourneySeeds = pd.read_csv('data/TourneySeeds.csv')
@@ -40,42 +39,37 @@ compact_results = pd.merge(compact_results, TourneySeeds[['Season', 'Team', 'See
 set1 = compact_results[['WSeedNum', 'LSeedNum']].rename(
     columns={'WSeedNum': 'Team1Seed', 'LSeedNum': 'Team2Seed'})
 set1['Team1Win'] = 1
-set2 = compact_results[['LSeedNum', 'WSeedNum']].rename(
-    columns={'LSeedNum': 'Team1Seed', 'WSeedNum': 'Team2Seed'})
-set2['Team1Win'] = 0
-full_set = pd.concat([set1, set2], ignore_index=True)
-full_set['Team1Seed'] = pd.to_numeric(full_set['Team1Seed'])
-full_set['Team2Seed'] = pd.to_numeric(full_set['Team2Seed'])
-full_set['Team1Win'] = pd.to_numeric(full_set['Team1Win'])
 
-print(full_set)
+# full_set['Team1Seed'] = pd.to_numeric(full_set['Team1Seed'])
+# full_set['Team2Seed'] = pd.to_numeric(full_set['Team2Seed'])
+# full_set['Team1Win'] = pd.to_numeric(full_set['Team1Win'])
 
-linmodel = ols(y=full_set['Team1Win'], x=full_set[
-               'Team2Seed'] - full_set['Team1Seed'])
-print(linmodel)
+# print(full_set)
 
-game_to_predict['Pred'] = linmodel.predict(
-    x=game_to_predict['TeamSeed2'] - game_to_predict['TeamSeed1'])
-game_to_predict[['Id', 'Pred']].to_csv('seed_submission.csv', index=False)
 
-# x = full_set['Team2Seed'] - full_set['Team1Seed']
-# y = full_set['Team1Win']
-#
-# predict = game_to_predict['TeamSeed2'] - game_to_predict['TeamSeed1']
-#
-# model = Sequential()
-# model.add(Dense(1, input_shape=(1,)))
-# model.add(Dense(1, activation=('sigmoid')))
-# model.compile(optimizer='sgd',
-#               loss='mean_squared_error',
-#               metrics=['accuracy'])
-#
-# model.fit(x, y, nb_epoch=10, batch_size=32)
-#
-# predictions = model.predict(predict)
-# print(predictions)
-plt.plot(full_set[
-    'Team2Seed'] - full_set['Team1Seed'], full_set['Team1Win'], 'ro', label='Original data')
+x = set1['Team2Seed'] - set1['Team1Seed']
+y = set1['Team1Win']
+
+# print(x.as_matrix())
+# print(y.as_matrix())
+
+predict = game_to_predict['TeamSeed2'] - game_to_predict['TeamSeed1']
+
+# print(predict.as_matrix())
+
+model = Sequential()
+model.add(Dense(1, input_shape=(1,)))
+model.add(Dense(1, activation=('sigmoid')))
+model.compile(optimizer='sgd',
+              loss='mean_squared_error',
+              metrics=['accuracy'])
+
+model.fit(x, y, nb_epoch=10, batch_size=32)
+
+predictions = model.predict(predict)
+print(predictions)
+plt.plot(set1[
+    'Team2Seed'] - set1['Team1Seed'], set1['Team1Win'], 'ro', label='Original data')
 plt.legend()
 plt.show()
 # np.savetxt("foo.csv", predictions, delimiter=",")
